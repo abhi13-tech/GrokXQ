@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
-import { Settings, User, CreditCard, LogOut, Home, Star, HelpCircle } from "lucide-react"
-import { motion } from "framer-motion"
+import { Settings, User, LogOut, Home } from "lucide-react"
 
 export function UserNav() {
   const { user, signOut } = useAuth()
@@ -42,11 +41,9 @@ export function UserNav() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-              <Avatar className="h-8 w-8 border border-future-accent1/30">
-                <AvatarFallback className="bg-future-light text-white">{initial}</AvatarFallback>
-              </Avatar>
-            </motion.div>
+            <Avatar className="h-8 w-8 border border-future-accent1/30">
+              <AvatarFallback className="bg-future-light text-white">{initial}</AvatarFallback>
+            </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56 future-glass" align="end" forceMount>
@@ -76,26 +73,7 @@ export function UserNav() {
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/billing" className="cursor-pointer">
-                <CreditCard className="mr-2 h-4 w-4 text-future-accent4" />
-                <span>Billing</span>
-              </Link>
-            </DropdownMenuItem>
           </DropdownMenuGroup>
-          <DropdownMenuSeparator className="bg-future-border" />
-          <DropdownMenuItem asChild>
-            <Link href="/help" className="cursor-pointer">
-              <HelpCircle className="mr-2 h-4 w-4 text-future-muted-foreground" />
-              <span>Help & Support</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/feedback" className="cursor-pointer">
-              <Star className="mr-2 h-4 w-4 text-future-muted-foreground" />
-              <span>Feedback</span>
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-future-border" />
           <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-future-accent3">
             <LogOut className="mr-2 h-4 w-4" />

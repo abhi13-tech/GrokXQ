@@ -15,18 +15,14 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, ChevronRight, Sparkles, Zap, Code, GitBranch, FileText } from 'lucide-react'
+import { Menu, ChevronRight, Sparkles, Zap, Code, GitBranch, FileText } from "lucide-react"
 import { useState, useEffect } from "react"
 import { UserNav } from "@/components/user-nav"
-import { motion, AnimatePresence } from "framer-motion"
 
 export function SiteHeader() {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [visible, setVisible] = useState(true)
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -34,23 +30,7 @@ export function SiteHeader() {
     }
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      // Determine if we've scrolled down or up
-      if (currentScrollY > lastScrollY) {
-        setVisible(false)
-      } else {
-        setVisible(true)
-      }
-
-      // Set scrolled state for styling
-      if (currentScrollY > 10) {
-        setScrolled(true)
-      } else {
-        setScrolled(false)
-      }
-
-      setLastScrollY(currentScrollY)
+      setScrolled(window.scrollY > 10)
     }
 
     checkScreenSize()
@@ -61,7 +41,7 @@ export function SiteHeader() {
       window.removeEventListener("resize", checkScreenSize)
       window.removeEventListener("scroll", handleScroll)
     }
-  }, [lastScrollY])
+  }, [])
 
   const mainNavItems = [
     {
@@ -99,57 +79,32 @@ export function SiteHeader() {
   const toolsNavItems = [
     {
       title: "Prompt Generator",
-      href: "/tools/prompt-generator",
+      href: "/",
       description: "Create powerful AI prompts for your projects",
       icon: "✨",
     },
     {
       title: "Code Optimizer",
-      href: "/tools/code-optimizer",
+      href: "/code-optimizer",
       description: "Improve your code's performance and readability",
       icon: "⚡",
-    },
-    {
-      title: "Debugging Assistant",
-      href: "/tools/debugging",
-      description: "Get help identifying and fixing bugs in your code",
-      icon: "🔍",
-    },
-    {
-      title: "API Generator",
-      href: "/tools/api-generator",
-      description: "Generate API endpoints and documentation",
-      icon: "🔄",
     },
   ]
 
   return (
-    <motion.header
+    <header
       className={cn(
         "sticky top-0 z-50 w-full backdrop-blur-md supports-[backdrop-filter]:bg-minimal-dark/60",
         scrolled ? "minimal-glass shadow-minimal-shadow-sm" : "bg-transparent",
-        visible ? "translate-y-0" : "-translate-y-full",
       )}
-      initial={{ y: 0 }}
-      animate={{ y: visible ? 0 : -100 }}
-      transition={{ duration: 0.3 }}
     >
       <div className="container flex h-16 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2 group">
-            <motion.div
-              className="w-8 h-8 rounded-md bg-minimal-accent1 flex items-center justify-center text-white font-bold"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div className="w-8 h-8 rounded-md bg-minimal-accent1 flex items-center justify-center text-white font-bold">
               GX
-            </motion.div>
-            <motion.span
-              className="font-bold text-xl hidden md:inline-block minimal-gradient-text"
-              whileHover={{ scale: 1.02 }}
-            >
-              GrokXQ
-            </motion.span>
+            </div>
+            <span className="font-bold text-xl hidden md:inline-block minimal-gradient-text">GrokXQ</span>
           </Link>
         </div>
 
@@ -178,12 +133,12 @@ export function SiteHeader() {
                       item.active ? "bg-minimal-light/30" : "transparent",
                     )}
                   >
-                    <motion.div className="mr-2">{item.icon}</motion.div>
+                    <div className="mr-2">{item.icon}</div>
                     {item.title}
                     {item.active && (
-                      <motion.div className="ml-auto">
+                      <div className="ml-auto">
                         <ChevronRight className="h-4 w-4 text-minimal-accent1" />
-                      </motion.div>
+                      </div>
                     )}
                   </Link>
                 ))}
@@ -215,39 +170,22 @@ export function SiteHeader() {
                         item.active ? "bg-minimal-light/30" : "",
                         "transition-all duration-200 group",
                       )}
-                      onMouseEnter={() => setHoveredItem(item.title)}
-                      onMouseLeave={() => setHoveredItem(null)}
                     >
                       <span className="mr-2 inline-block">{item.icon}</span>
                       {item.title}
-                      <AnimatePresence>
-                        {hoveredItem === item.title && (
-                          <motion.span
-                            className="absolute bottom-0 left-0 h-px bg-minimal-accent1 w-0"
-                            initial={{ width: 0 }}
-                            animate={{ width: "100%" }}
-                            exit={{ width: 0 }}
-                            transition={{ duration: 0.2 }}
-                          />
-                        )}
-                      </AnimatePresence>
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
               ))}
               <NavigationMenuItem>
-                <NavigationMenuTrigger
-                  className="group border border-minimal-accent3/20"
-                  onMouseEnter={() => setHoveredItem("Tools")}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
+                <NavigationMenuTrigger className="group border border-minimal-accent3/20">
                   Tools
                   <span className="ml-1 inline-block">⚙️</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] minimal-glass">
                     {toolsNavItems.map((item) => (
-                      <motion.li key={item.href} whileHover={{ scale: 1.02 }} className="rounded-md">
+                      <li key={item.href} className="rounded-md">
                         <NavigationMenuLink asChild>
                           <Link
                             href={item.href}
@@ -262,7 +200,7 @@ export function SiteHeader() {
                             </p>
                           </Link>
                         </NavigationMenuLink>
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
                 </NavigationMenuContent>
@@ -276,6 +214,6 @@ export function SiteHeader() {
           <ModeToggle />
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }
