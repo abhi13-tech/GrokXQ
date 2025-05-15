@@ -64,44 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOffline(false)
-      console.log("App is online")
-      // Try to refresh data when coming back online
-      refreshAuthState()
-    }
-
-    const handleOffline = () => {
-      setIsOffline(true)
-      console.log("App is offline")
-      // Load from local storage when offline
-      const cachedUser = getFromLocalStorage(USER_STORAGE_KEY)
-      const cachedProfile = getFromLocalStorage(PROFILE_STORAGE_KEY)
-
-      if (cachedUser) {
-        setUser(cachedUser)
-        setProfile(cachedProfile)
-      }
-    }
-
-    if (typeof window !== "undefined") {
-      // Set initial state
-      setIsOffline(!navigator.onLine)
-
-      // Add event listeners
-      window.addEventListener("online", handleOnline)
-      window.addEventListener("offline", handleOffline)
-
-      // Clean up
-      return () => {
-        window.removeEventListener("online", handleOnline)
-        window.removeEventListener("offline", handleOffline)
-      }
-    }
-  }, [])
-
   // Function to fetch user profile with error handling
   const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
     if (isOffline) {
@@ -183,6 +145,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false)
+      console.log("App is online")
+      // Try to refresh data when coming back online
+      refreshAuthState()
+    }
+
+    const handleOffline = () => {
+      setIsOffline(true)
+      console.log("App is offline")
+      // Load from local storage when offline
+      const cachedUser = getFromLocalStorage(USER_STORAGE_KEY)
+      const cachedProfile = getFromLocalStorage(PROFILE_STORAGE_KEY)
+
+      if (cachedUser) {
+        setUser(cachedUser)
+        setProfile(cachedProfile)
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      // Set initial state
+      setIsOffline(!navigator.onLine)
+
+      // Add event listeners
+      window.addEventListener("online", handleOnline)
+      window.addEventListener("offline", handleOffline)
+
+      // Clean up
+      return () => {
+        window.removeEventListener("online", handleOnline)
+        window.removeEventListener("offline", handleOffline)
+      }
+    }
+  }, [])
+
+  // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -497,25 +498,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        session,
-        isLoading,
-        isOffline,
-        signIn,
-        signUp,
-        signOut,
-        resetPassword,
-        updatePassword,
-        refreshProfile,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = {
+    user,
+    profile,
+    session,
+    isLoading,
+    isOffline,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
+    updatePassword,
+    refreshProfile,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {

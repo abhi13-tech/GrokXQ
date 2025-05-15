@@ -6,10 +6,10 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Toaster } from "@/components/ui/toaster"
-import { Analytics } from "@/components/analytics"
 import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { Fallback } from "@/components/fallback"
 
 // Configure the fonts
 const spaceGrotesk = Space_Grotesk({
@@ -42,21 +42,20 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <Suspense>
-              <ErrorBoundary>
-                <div className="relative flex min-h-screen flex-col">
-                  <div
-                    className="fixed inset-0 bg-minimal-grid opacity-5 pointer-events-none z-0"
-                    style={{ backgroundSize: "30px 30px" }}
-                  ></div>
-                  <SiteHeader />
-                  <div className="flex-1 relative z-10">{children}</div>
-                  <SiteFooter />
+            <ErrorBoundary>
+              <div className="relative flex min-h-screen flex-col">
+                <div
+                  className="fixed inset-0 bg-minimal-grid opacity-5 pointer-events-none z-0"
+                  style={{ backgroundSize: "30px 30px" }}
+                ></div>
+                <SiteHeader />
+                <div className="flex-1 relative z-10">
+                  <Suspense fallback={<Fallback />}>{children}</Suspense>
                 </div>
-                <Toaster />
-                <Analytics />
-              </ErrorBoundary>
-            </Suspense>
+                <SiteFooter />
+              </div>
+              <Toaster />
+            </ErrorBoundary>
           </AuthProvider>
         </ThemeProvider>
       </body>
