@@ -29,32 +29,6 @@ export interface Database {
           updated_at?: string
         }
       }
-      projects: {
-        Row: {
-          id: string
-          name: string
-          description: string | null
-          user_id: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string | null
-          user_id: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string | null
-          user_id?: string
-          created_at?: string
-          updated_at?: string
-        }
-      }
       prompts: {
         Row: {
           id: string
@@ -66,7 +40,6 @@ export interface Database {
           model: string
           generated_prompt: string
           user_id: string
-          project_id: string | null
           created_at: string
         }
         Insert: {
@@ -79,7 +52,6 @@ export interface Database {
           model: string
           generated_prompt: string
           user_id: string
-          project_id?: string | null
           created_at?: string
         }
         Update: {
@@ -92,7 +64,6 @@ export interface Database {
           model?: string
           generated_prompt?: string
           user_id?: string
-          project_id?: string | null
           created_at?: string
         }
       }
@@ -106,7 +77,6 @@ export interface Database {
           additional_context: string | null
           generated_code: string
           user_id: string
-          project_id: string | null
           created_at: string
         }
         Insert: {
@@ -118,7 +88,6 @@ export interface Database {
           additional_context?: string | null
           generated_code: string
           user_id: string
-          project_id?: string | null
           created_at?: string
         }
         Update: {
@@ -130,7 +99,6 @@ export interface Database {
           additional_context?: string | null
           generated_code?: string
           user_id?: string
-          project_id?: string | null
           created_at?: string
         }
       }
@@ -143,7 +111,6 @@ export interface Database {
           model: string
           review_result: string
           user_id: string
-          project_id: string | null
           created_at: string
         }
         Insert: {
@@ -154,7 +121,6 @@ export interface Database {
           model: string
           review_result: string
           user_id: string
-          project_id?: string | null
           created_at?: string
         }
         Update: {
@@ -165,7 +131,6 @@ export interface Database {
           model?: string
           review_result?: string
           user_id?: string
-          project_id?: string | null
           created_at?: string
         }
       }
@@ -181,7 +146,6 @@ export interface Database {
           additional_context: string | null
           generated_tests: string
           user_id: string
-          project_id: string | null
           created_at: string
         }
         Insert: {
@@ -195,7 +159,6 @@ export interface Database {
           additional_context?: string | null
           generated_tests: string
           user_id: string
-          project_id?: string | null
           created_at?: string
         }
         Update: {
@@ -209,42 +172,6 @@ export interface Database {
           additional_context?: string | null
           generated_tests?: string
           user_id?: string
-          project_id?: string | null
-          created_at?: string
-        }
-      }
-      deployments: {
-        Row: {
-          id: string
-          project_id: string
-          environment: string
-          version: string
-          status: string
-          url: string | null
-          logs: string | null
-          user_id: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          project_id: string
-          environment: string
-          version: string
-          status: string
-          url?: string | null
-          logs?: string | null
-          user_id: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          project_id?: string
-          environment?: string
-          version?: string
-          status?: string
-          url?: string | null
-          logs?: string | null
-          user_id?: string
           created_at?: string
         }
       }
@@ -252,7 +179,6 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          project_id: string | null
           activity_type: string
           description: string
           metadata: Json | null
@@ -261,7 +187,6 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
-          project_id?: string | null
           activity_type: string
           description: string
           metadata?: Json | null
@@ -270,7 +195,6 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
-          project_id?: string | null
           activity_type?: string
           description?: string
           metadata?: Json | null

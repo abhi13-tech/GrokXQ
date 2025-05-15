@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 export function SignInForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
   const { signIn, user } = useAuth()
   const router = useRouter()
@@ -54,10 +54,16 @@ export function SignInForm() {
 
     setIsLoading(true)
     try {
-      await signIn(email, password)
+      console.log("Attempting to sign in with email:", email)
+      const result = await signIn(email, password)
+      console.log("Sign in result:", result)
       // The redirect is handled in the signIn function
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in error:", error)
+      setErrors({
+        ...errors,
+        general: error.message || "Failed to sign in. Please check your credentials and try again.",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -109,7 +115,7 @@ export function SignInForm() {
             />
             {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
-
+          {errors.general && <div className="p-3 mt-3 text-sm text-red-500 bg-red-50 rounded-md">{errors.general}</div>}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>

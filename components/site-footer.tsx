@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
-import { Github, Twitter, Linkedin } from "lucide-react"
+import { Github, Twitter, Linkedin, ArrowUpRight } from "lucide-react"
 
 export function SiteFooter() {
   const [ref, inView] = useInView({
@@ -19,6 +19,20 @@ export function SiteFooter() {
       transition: {
         delay: 0.2,
         duration: 0.5,
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 10,
       },
     },
   }
@@ -39,131 +53,93 @@ export function SiteFooter() {
 
   return (
     <motion.footer
-      className="border-t py-8 md:py-12"
+      className="border-t border-minimal-border py-8 md:py-12 relative overflow-hidden minimal-glass"
       ref={ref}
       variants={containerVariants}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
     >
-      <div className="container grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-4">
+      <div className="container grid gap-8 md:grid-cols-2 lg:grid-cols-4 relative z-10">
+        <motion.div className="space-y-4" variants={itemVariants}>
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-foreground flex items-center justify-center text-white font-bold">
+            <motion.div
+              className="w-8 h-8 rounded-md bg-minimal-accent1 flex items-center justify-center text-white font-bold"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               GX
-            </div>
-            <span className="font-bold text-xl">GrokXQ</span>
+            </motion.div>
+            <span className="font-bold text-xl minimal-gradient-text">GrokXQ</span>
           </Link>
-          <p className="text-sm text-muted-foreground max-w-xs">
+          <p className="text-sm text-minimal-muted-foreground max-w-xs">
             Comprehensive AI-powered development suite for modern developers. Build better software, faster.
           </p>
-        </div>
+        </motion.div>
 
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Products</h3>
+        <motion.div variants={itemVariants}>
+          <h3 className="text-lg font-semibold mb-4 minimal-gradient-text">Products</h3>
           <ul className="space-y-2">
             <li>
               <Link
                 href="/code-generation"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-minimal-muted-foreground hover:text-minimal-accent1 transition-colors flex items-center group"
               >
-                Code Generation
+                <span>Code Generation</span>
+                <motion.span
+                  className="ml-1 opacity-0 group-hover:opacity-100"
+                  initial={{ x: -5 }}
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowUpRight className="h-3 w-3" />
+                </motion.span>
               </Link>
             </li>
             <li>
               <Link
                 href="/code-review"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-minimal-muted-foreground hover:text-minimal-accent1 transition-colors flex items-center group"
               >
-                Code Review
-              </Link>
-            </li>
-            <li>
-              <Link href="/testing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Testing
+                <span>Code Review</span>
+                <motion.span
+                  className="ml-1 opacity-0 group-hover:opacity-100"
+                  initial={{ x: -5 }}
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowUpRight className="h-3 w-3" />
+                </motion.span>
               </Link>
             </li>
             <li>
               <Link
-                href="/deployment"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                href="/testing"
+                className="text-sm text-minimal-muted-foreground hover:text-minimal-accent1 transition-colors flex items-center group"
               >
-                Deployment
+                <span>Testing</span>
+                <motion.span
+                  className="ml-1 opacity-0 group-hover:opacity-100"
+                  initial={{ x: -5 }}
+                  animate={{ x: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowUpRight className="h-3 w-3" />
+                </motion.span>
               </Link>
             </li>
           </ul>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Resources</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Documentation
-              </Link>
-            </li>
-            <li>
-              <Link href="/api" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                API Reference
-              </Link>
-            </li>
-            <li>
-              <Link href="/tutorials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Tutorials
-              </Link>
-            </li>
-            <li>
-              <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Blog
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Connect</h3>
-          <div className="flex space-x-4 mb-4">
-            {socialLinks.map((link, index) => (
-              <motion.a
-                key={index}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-                aria-label={link.label}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {link.icon}
-              </motion.a>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground">Subscribe to our newsletter for updates</p>
-          <div className="mt-2 flex">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="px-3 py-2 text-sm rounded-l-md border border-input bg-background w-full focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <motion.button
-              className="bg-primary text-primary-foreground px-3 py-2 text-sm rounded-r-md"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Subscribe
-            </motion.button>
-          </div>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="container mt-8 pt-8 border-t">
+      <div className="container mt-8 pt-8 border-t border-minimal-border">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <p className="text-center text-sm text-muted-foreground mb-4 md:mb-0">
+          <p className="text-center text-sm text-minimal-muted-foreground mb-4 md:mb-0">
             Built with AI. Powered by{" "}
             <Link
               href="https://groq.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline underline-offset-4 hover:text-primary transition-colors"
+              className="font-medium underline underline-offset-4 hover:text-minimal-accent1 transition-colors"
             >
               Groq
             </Link>{" "}
@@ -172,23 +148,12 @@ export function SiteFooter() {
               href="https://grok.x.ai"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline underline-offset-4 hover:text-primary transition-colors"
+              className="font-medium underline underline-offset-4 hover:text-minimal-accent1 transition-colors"
             >
               Grok
             </Link>
             . GrokXQ © 2025.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {footerLinks.map((link, index) => (
-              <Link
-                key={index}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.title}
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
     </motion.footer>

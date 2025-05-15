@@ -1,11 +1,17 @@
 "use client"
 
+import { CardFooter } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileCode, GitBranch, MessageSquare, Play, Rocket } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileCode, GitBranch, MessageSquare, Play } from "lucide-react"
 import Link from "next/link"
 
-export function WelcomeGuide() {
+interface WelcomeGuideProps {
+  userName?: string
+}
+
+export function WelcomeGuide({ userName = "there" }: WelcomeGuideProps) {
   const features = [
     {
       title: "Generate Prompts",
@@ -31,22 +37,16 @@ export function WelcomeGuide() {
       icon: <Play className="h-8 w-8 text-primary" />,
       href: "/testing",
     },
-    {
-      title: "Deploy Projects",
-      description: "Deploy your applications to various environments",
-      icon: <Rocket className="h-8 w-8 text-primary" />,
-      href: "/deployment",
-    },
   ]
 
   return (
     <Card className="border-2 border-primary/20">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome to GrokXQ Development Suite!</CardTitle>
+        <CardTitle className="text-2xl">Welcome, {userName}!</CardTitle>
         <CardDescription>Get started with these powerful AI-powered development tools</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => (
             <Card key={index} className="overflow-hidden transition-all hover:shadow-md">
               <CardHeader className="p-4">
@@ -69,16 +69,6 @@ export function WelcomeGuide() {
           ))}
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Create your first project to organize your work and track your progress
-          </p>
-        </div>
-        <Link href="/dashboard/projects" className="w-full max-w-xs mx-auto">
-          <Button className="w-full">Create Your First Project</Button>
-        </Link>
-      </CardFooter>
     </Card>
   )
 }

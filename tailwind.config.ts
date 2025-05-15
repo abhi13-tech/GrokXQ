@@ -53,6 +53,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Minimalistic color palette
+        minimal: {
+          dark: "#121212",
+          darker: "#0A0A0A",
+          darkest: "#050505",
+          light: "#1A1A1A",
+          accent1: "#4F9BFF", // Primary accent - soft blue
+          accent2: "#E2E2E2", // Light gray for subtle highlights
+          accent3: "#A3A3A3", // Medium gray for secondary elements
+          muted: "#2A2A2A",
+          "muted-foreground": "#8A8A8A",
+          border: "#2A2A2A",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -98,7 +111,11 @@ const config = {
         },
         "pulse-slow": {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.5" },
+          "50%": { opacity: "0.8" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
         },
       },
       animation: {
@@ -112,13 +129,21 @@ const config = {
         "slide-out-bottom": "slide-out-bottom 0.3s ease-out",
         "spin-slow": "spin-slow 3s linear infinite",
         "pulse-slow": "pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        float: "float 3s ease-in-out infinite",
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "minimal-grid":
+          "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+        "minimal-gradient": "linear-gradient(to right, #121212, #1A1A1A, #121212)",
+      },
+      boxShadow: {
+        "minimal-glow": "0 0 10px rgba(79, 155, 255, 0.3), 0 0 20px rgba(79, 155, 255, 0.2)",
+        "minimal-glow-sm": "0 0 5px rgba(79, 155, 255, 0.2), 0 0 10px rgba(79, 155, 255, 0.1)",
       },
       transitionProperty: {
         height: "height",
         spacing: "margin, padding",
-      },
-      boxShadow: {
-        hover: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
       },
     },
   },

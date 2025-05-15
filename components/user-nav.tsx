@@ -1,6 +1,6 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,84 +11,98 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { motion } from "framer-motion"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { Settings, User, CreditCard, LogOut, Home, Star, HelpCircle } from "lucide-react"
+import { motion } from "framer-motion"
 
 export function UserNav() {
-  const { user, profile, signOut, isLoading } = useAuth()
+  const { user, signOut } = useAuth()
 
-  if (isLoading) {
-    return (
-      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </Button>
-    )
-  }
+  // Get initial for avatar fallback
+  const initial = user?.email?.charAt(0).toUpperCase() || "U"
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Link href="/sign-in">
           <Button variant="ghost" size="sm">
-            Sign In
+            Sign in
           </Button>
         </Link>
         <Link href="/sign-up">
-          <Button size="sm">Sign Up</Button>
+          <Button size="sm">Get Started</Button>
         </Link>
       </div>
     )
   }
 
-  const initials = profile?.full_name
-    ? profile.full_name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-    : user.email?.charAt(0).toUpperCase() || "U"
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <Avatar className="h-8 w-8 border-2 border-primary/20">
-              <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || user.email || ""} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          </motion.div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <Link href="/profile">
-            <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-          </Link>
-          <Link href="/dashboard">
-            <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
-          </Link>
-          <Link href="/dashboard/projects">
-            <DropdownMenuItem className="cursor-pointer">Projects</DropdownMenuItem>
-          </Link>
-          <Link href="/dashboard/settings">
-            <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
-          </Link>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+              <Avatar className="h-8 w-8 border border-future-accent1/30">
+                <AvatarFallback className="bg-future-light text-white">{initial}</AvatarFallback>
+              </Avatar>
+            </motion.div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 future-glass" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.email?.split("@")[0] || "User"}</p>
+              <p className="text-xs leading-none text-future-muted-foreground">{user?.email}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-future-border" />
+          <DropdownMenuGroup>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard" className="cursor-pointer">
+                <Home className="mr-2 h-4 w-4 text-future-accent1" />
+                <span>Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="cursor-pointer">
+                <User className="mr-2 h-4 w-4 text-future-accent2" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4 text-future-accent3" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/billing" className="cursor-pointer">
+                <CreditCard className="mr-2 h-4 w-4 text-future-accent4" />
+                <span>Billing</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator className="bg-future-border" />
+          <DropdownMenuItem asChild>
+            <Link href="/help" className="cursor-pointer">
+              <HelpCircle className="mr-2 h-4 w-4 text-future-muted-foreground" />
+              <span>Help & Support</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/feedback" className="cursor-pointer">
+              <Star className="mr-2 h-4 w-4 text-future-muted-foreground" />
+              <span>Feedback</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-future-border" />
+          <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-future-accent3">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }

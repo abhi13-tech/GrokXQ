@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Code, FileCode, GitPullRequest, Rocket, Zap } from "lucide-react"
+import { Code, FileCode, GitPullRequest, Zap } from "lucide-react"
 
 export function QuickActions() {
   const actions = [
@@ -27,12 +27,6 @@ export function QuickActions() {
       label: "Review Code",
       href: "/code-review",
       description: "Get feedback on your code",
-    },
-    {
-      icon: <Rocket className="h-4 w-4 mr-2" />,
-      label: "Deploy Project",
-      href: "/deployment",
-      description: "Deploy your application",
     },
   ]
 

@@ -1,89 +1,68 @@
-import { groq } from "@ai-sdk/groq"
-import { xai } from "@ai-sdk/xai"
+import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { createServerClient } from "@/lib/supabase"
-import { logActivity } from "@/lib/activity-logger"
+import { groq } from "@ai-sdk/groq"
+import { z } from "zod"
+import { PerformanceMonitor } from "@/lib/performance-monitor"
 
-export async function POST(req: Request) {
+// Input validation schema
+const promptRequestSchema = z.object({
+  prompt: z.string().min(3).max(1000),
+  model: z.string().min(1),
+  temperature: z.number().min(0).max(1).optional().default(0.7),
+  maxTokens: z.number().int().positive().max(4000).optional().default(1000),
+})
+
+export async function POST(req: NextRequest) {
+  // Start performance monitoring
+  PerformanceMonitor.startMeasure("generate-prompt-api")
+
   try {
-    const { topic, promptType, tone, length, additionalContext, model, userId, projectId } = await req.json()
+    // Parse and validate request body
+    const body = await req.json()
 
-    // Create a system message that instructs the model how to generate prompts
-    const systemMessage = `You are an expert prompt engineer who creates high-quality, effective prompts for AI models. 
-    Your task is to generate a prompt based on the following parameters:
-    - Topic: ${topic}
-    - Type: ${promptType} prompt
-    - Tone: ${tone}
-    - Length: ${length}% (where 100% is a comprehensive prompt and 10% is very concise)
-    - Additional Context: ${additionalContext || "None provided"}
-    
-    Create a well-structured, clear prompt that will produce excellent results when used with AI models. 
-    The prompt should be directly usable - do not include explanations, introductions, or meta-commentary.
-    Just provide the prompt itself.`
-
-    // Determine which model to use based on the model parameter
-    let aiModel
-    if (model.startsWith("groq")) {
-      const modelName = model.replace("groq-", "")
-      aiModel = groq(modelName)
-    } else if (model.startsWith("xai")) {
-      const modelName = model.replace("xai-", "")
-      aiModel = xai(modelName)
-    } else {
-      // Default to Groq's Llama model
-      aiModel = groq("llama-3.1-8b-instant")
+    const validationResult = promptRequestSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Validation error",
+          details: validationResult.error.errors,
+        },
+        { status: 400 },
+      )
     }
 
-    // Generate the prompt using the selected model
-    const result = await generateText({
-      model: aiModel,
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-        {
-          role: "user",
-          content: `Please create a ${promptType} prompt about ${topic} with a ${tone} tone.`,
-        },
-      ],
-      temperature: 0.7,
-      maxTokens: 1000,
+    const { prompt, model, temperature, maxTokens } = validationResult.data
+
+    // Select the appropriate model
+    const modelToUse = model === "groq-llama3-70b" ? groq("llama3-70b-8192") : groq("mixtral-8x7b-32768")
+
+    // Generate the prompt
+    const { text } = await generateText({
+      model: modelToUse,
+      prompt,
+      temperature,
+      maxTokens,
     })
 
-    // If userId is provided, save the prompt to the database
-    if (userId) {
-      const supabase = createServerClient()
-
-      const { error } = await supabase.from("prompts").insert({
-        topic,
-        prompt_type: promptType,
-        tone,
-        length,
-        additional_context: additionalContext || null,
-        model,
-        generated_prompt: result.text,
-        user_id: userId,
-        project_id: projectId || null,
-      })
-
-      if (error) {
-        console.error("Error saving prompt to database:", error)
-      } else {
-        // Log the activity
-        await logActivity(userId, "prompt_generation", `Generated a ${promptType} prompt about ${topic}`, projectId, {
-          topic,
-          promptType,
-          tone,
-          length,
-          model,
-        })
-      }
-    }
-
-    return Response.json({ prompt: result.text })
+    // Return the generated prompt
+    return NextResponse.json({ result: text })
   } catch (error) {
     console.error("Error generating prompt:", error)
-    return Response.json({ error: "Failed to generate prompt" }, { status: 500 })
+
+    // Handle different types of errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 })
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json({ error: "AI model error", message: error.message }, { status: 500 })
+    }
+
+    // Generic error
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 })
+  } finally {
+    // End performance monitoring
+    const duration = PerformanceMonitor.endMeasure("generate-prompt-api")
+    console.log(`Generate prompt API took ${duration?.toFixed(2)}ms`)
   }
 }

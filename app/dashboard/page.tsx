@@ -5,32 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
-import { ProjectList } from "@/components/dashboard/project-list"
 import { AIInsights } from "@/components/dashboard/ai-insights"
 import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
-import { Loader2 } from "lucide-react"
+import { FileText, Code, GitPullRequest, ClipboardList } from "lucide-react"
 import { WelcomeGuide } from "@/components/dashboard/welcome-guide"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type ActivityStats = {
   promptCount: number
   codeGenCount: number
   codeReviewCount: number
   testCount: number
-  deploymentCount: number
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState<ActivityStats>({
     promptCount: 0,
     codeGenCount: 0,
     codeReviewCount: 0,
     testCount: 0,
-    deploymentCount: 0,
   })
-  const [recentActivities, setRecentActivities] = useState<any[]>([])
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -38,37 +35,20 @@ export default function DashboardPage() {
 
       try {
         // Fetch activity counts
-        const [
-          { count: promptCount },
-          { count: codeGenCount },
-          { count: codeReviewCount },
-          { count: testCount },
-          { count: deploymentCount },
-        ] = await Promise.all([
-          supabase.from("prompts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("code_generations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("code_reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("tests").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("deployments").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        ])
+        const [{ count: promptCount }, { count: codeGenCount }, { count: codeReviewCount }, { count: testCount }] =
+          await Promise.all([
+            supabase.from("prompts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("code_generations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("code_reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("tests").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+          ])
 
         setStats({
           promptCount: promptCount || 0,
           codeGenCount: codeGenCount || 0,
           codeReviewCount: codeReviewCount || 0,
           testCount: testCount || 0,
-          deploymentCount: deploymentCount || 0,
         })
-
-        // Fetch recent activities
-        const { data: activities } = await supabase
-          .from("activity_logs")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(5)
-
-        setRecentActivities(activities || [])
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
       } finally {
@@ -87,8 +67,52 @@ export default function DashboardPage() {
     return (
       <DashboardShell>
         <DashboardHeader heading="Dashboard" text="Welcome to your development dashboard." />
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="h-4 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
+          <div className="col-span-4">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="flex items-start gap-4 rounded-lg border p-3">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="col-span-3">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-40 w-full" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </DashboardShell>
     )
@@ -105,17 +129,11 @@ export default function DashboardPage() {
     )
   }
 
-  if (
-    stats.promptCount === 0 &&
-    stats.codeGenCount === 0 &&
-    stats.codeReviewCount === 0 &&
-    stats.testCount === 0 &&
-    stats.deploymentCount === 0
-  ) {
+  if (stats.promptCount === 0 && stats.codeGenCount === 0 && stats.codeReviewCount === 0 && stats.testCount === 0) {
     return (
       <DashboardShell>
         <DashboardHeader heading="Dashboard" text="Welcome to your development dashboard." />
-        <WelcomeGuide />
+        <WelcomeGuide userName={profile?.full_name} />
       </DashboardShell>
     )
   }
@@ -127,21 +145,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Prompts</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="3.5"></circle>
-              <line x1="18" y1="8" x2="23" y2="8"></line>
-              <line x1="18" y1="16" x2="23" y2="16"></line>
-            </svg>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.promptCount}</div>
@@ -152,21 +156,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Code Generations</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-              <line x1="2" y1="10" x2="22" y2="10"></line>
-              <path d="M6 16v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-1"></path>
-              <path d="M18 16v1a1 1 0 0 1-1 1H16a1 1 0 0 1-1-1v-1"></path>
-            </svg>
+            <Code className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.codeGenCount}</div>
@@ -177,18 +167,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Code Reviews</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a.5.5 0 0 0 0 1h5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h5.5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h6.5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h7.5"></path>
-            </svg>
+            <GitPullRequest className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.codeReviewCount}</div>
@@ -199,58 +178,22 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tests</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M5 12h14"></path>
-              <path d="M12 5v14"></path>
-            </svg>
+            <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.testCount}</div>
             <p className="text-muted-foreground text-sm">Total Tests</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deployments</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <line x1="12" y1="2" x2="12" y2="22"></line>
-              <path d="M17 5H9.5a.5.5 0 0 0 0 1h5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h5.5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h6.5a.5.5 0 0 1 0 1H9a.5.5 0 0 0 0 1h7.5"></path>
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.deploymentCount}</div>
-            <p className="text-muted-foreground text-sm">Total Deployments</p>
-          </CardContent>
-        </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4">
-          <RecentActivity activities={recentActivities} />
+          <RecentActivity />
         </div>
         <div className="col-span-3">
           <AIInsights />
         </div>
       </div>
-      <ProjectList />
     </DashboardShell>
   )
 }

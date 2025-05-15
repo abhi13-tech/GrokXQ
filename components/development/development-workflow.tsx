@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Check, Clock, Code, FileCode, GitBranch, GitPullRequest, Loader2, Play, Rocket } from "lucide-react"
+import { Check, Clock, Code, FileCode, GitBranch, GitPullRequest, Play } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 type WorkflowStep = {
@@ -21,7 +21,6 @@ type WorkflowStep = {
 
 export function DevelopmentWorkflow() {
   const [activeProject, setActiveProject] = useState("e-commerce")
-  const [isDeploying, setIsDeploying] = useState(false)
   const { toast } = useToast()
 
   const projects = [
@@ -53,13 +52,6 @@ export function DevelopmentWorkflow() {
         status: "in-progress",
         icon: <Play className="h-5 w-5" />,
       },
-      {
-        id: "deployment",
-        title: "Deployment",
-        description: "Deploy to staging environment",
-        status: "pending",
-        icon: <Rocket className="h-5 w-5" />,
-      },
     ],
     dashboard: [
       {
@@ -82,13 +74,6 @@ export function DevelopmentWorkflow() {
         description: "Generate tests for dashboard components",
         status: "pending",
         icon: <Play className="h-5 w-5" />,
-      },
-      {
-        id: "deployment",
-        title: "Deployment",
-        description: "Deploy to development environment",
-        status: "pending",
-        icon: <Rocket className="h-5 w-5" />,
       },
     ],
     "mobile-app": [
@@ -113,30 +98,7 @@ export function DevelopmentWorkflow() {
         status: "completed",
         icon: <Play className="h-5 w-5" />,
       },
-      {
-        id: "deployment",
-        title: "Deployment",
-        description: "Deploy to TestFlight",
-        status: "in-progress",
-        icon: <Rocket className="h-5 w-5" />,
-      },
     ],
-  }
-
-  const handleDeploy = () => {
-    setIsDeploying(true)
-    setTimeout(() => {
-      setIsDeploying(false)
-      const updatedSteps = [...workflowSteps[activeProject]]
-      const deploymentStep = updatedSteps.find((step) => step.id === "deployment")
-      if (deploymentStep) {
-        deploymentStep.status = "in-progress"
-        toast({
-          title: "Deployment started",
-          description: `Deploying ${projects.find((p) => p.id === activeProject)?.name} to staging environment.`,
-        })
-      }
-    }, 2000)
   }
 
   const getStatusBadge = (status: WorkflowStep["status"]) => {
@@ -224,24 +186,9 @@ export function DevelopmentWorkflow() {
               Create Branch
             </Button>
           </div>
-          <Button
-            onClick={handleDeploy}
-            disabled={
-              isDeploying ||
-              !workflowSteps[activeProject].some((step) => step.id === "testing" && step.status === "completed")
-            }
-          >
-            {isDeploying ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Deploying...
-              </>
-            ) : (
-              <>
-                <Rocket className="mr-2 h-4 w-4" />
-                Deploy
-              </>
-            )}
+          <Button variant="outline" size="sm">
+            <Play className="mr-2 h-4 w-4" />
+            Run Tests
           </Button>
         </CardFooter>
       </Card>

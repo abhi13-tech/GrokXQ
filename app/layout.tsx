@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Space_Grotesk, Orbitron } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
@@ -10,7 +10,18 @@ import { Analytics } from "@/components/analytics"
 import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 
-const inter = Inter({ subsets: ["latin"] })
+// Configure the fonts
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
+})
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  weight: ["400", "500", "600", "700"],
+})
 
 export const metadata: Metadata = {
   title: "GrokXQ Development Suite",
@@ -25,13 +36,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body
+        className={`min-h-screen bg-minimal-dark text-white antialiased ${spaceGrotesk.variable} ${orbitron.variable}`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <Suspense>
               <div className="relative flex min-h-screen flex-col">
+                <div
+                  className="fixed inset-0 bg-minimal-grid opacity-5 pointer-events-none z-0"
+                  style={{ backgroundSize: "30px 30px" }}
+                ></div>
                 <SiteHeader />
-                <div className="flex-1">{children}</div>
+                <div className="flex-1 relative z-10">{children}</div>
                 <SiteFooter />
               </div>
               <Toaster />

@@ -7,6 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
 import { MessageSquare } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import { supabase } from "@/lib/supabase"
 
 type PromptHistoryItem = {
   id: string
@@ -18,12 +21,39 @@ type PromptHistoryItem = {
 }
 
 interface PromptHistoryProps {
-  prompts: PromptHistoryItem[]
   onSelectPrompt: (prompt: string) => void
-  isLoading?: boolean
 }
 
-export function PromptHistory({ prompts, onSelectPrompt, isLoading = false }: PromptHistoryProps) {
+export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
+  const { user } = useAuth()
+  const [prompts, setPrompts] = useState<PromptHistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPromptHistory() {
+      if (!user) return
+
+      try {
+        setIsLoading(true)
+        const { data, error } = await supabase
+          .from("prompts")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10)
+
+        if (error) throw error
+        setPrompts(data || [])
+      } catch (error) {
+        console.error("Error fetching prompt history:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPromptHistory()
+  }, [user])
+
   if (isLoading) {
     return (
       <Card>

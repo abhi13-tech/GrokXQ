@@ -1,61 +1,101 @@
-import { groq } from "@ai-sdk/groq"
-import { xai } from "@ai-sdk/xai"
+import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { groq } from "@ai-sdk/groq"
+import { z } from "zod"
+import { PerformanceMonitor } from "@/lib/performance-monitor"
 
-export async function POST(req: Request) {
+// Input validation schema
+const generateTestsRequestSchema = z.object({
+  code: z.string().min(10),
+  language: z.string().min(1),
+  testFramework: z.string().min(1),
+  coverageLevel: z.enum(["basic", "moderate", "comprehensive"]).default("moderate"),
+})
+
+export async function POST(req: NextRequest) {
+  // Start performance monitoring
+  PerformanceMonitor.startMeasure("generate-tests-api")
+
   try {
-    const { code, language, framework, testTypes, coverage, model, additionalContext } = await req.json()
+    // Parse and validate request body
+    const body = await req.json()
 
-    // Create a system message that instructs the model how to generate tests
-    const systemMessage = `You are an expert software engineer specializing in test generation. 
-    You are generating tests for code written in ${language} using the ${framework} testing framework.
-    
-    Focus on the following test types: ${testTypes.join(", ")}.
-    The desired test coverage level is: ${coverage} (where low is ~70%, medium is ~85%, and high is 95%+).
-    
-    Additional context: ${additionalContext || "None provided"}
-    
-    Your task is to:
-    1. Analyze the provided code
-    2. Generate comprehensive tests that cover the specified test types
-    3. Ensure the tests follow best practices for the specified framework
-    4. Include comments explaining the purpose of each test
-    
-    Format your response as valid ${language} code with appropriate test syntax for ${framework}.`
-
-    // Determine which model to use based on the model parameter
-    let aiModel
-    if (model.startsWith("groq")) {
-      const modelName = model.replace("groq-", "")
-      aiModel = groq(modelName)
-    } else if (model.startsWith("xai")) {
-      const modelName = model.replace("xai-", "")
-      aiModel = xai(modelName)
-    } else {
-      // Default to Groq's Llama model
-      aiModel = groq("llama-3.1-8b-instant")
+    const validationResult = generateTestsRequestSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Validation error",
+          details: validationResult.error.errors,
+        },
+        { status: 400 },
+      )
     }
 
-    // Generate the tests using the selected model
-    const result = await generateText({
-      model: aiModel,
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-        {
-          role: "user",
-          content: `Please generate ${framework} tests for this ${language} code:\n\n\`\`\`${language}\n${code}\n\`\`\``,
-        },
-      ],
+    const { code, language, testFramework, coverageLevel } = validationResult.data
+
+    // Create test generation prompt based on parameters
+    let testPrompt = `Generate ${coverageLevel} test cases for the following ${language} code using the ${testFramework} testing framework.`
+
+    switch (coverageLevel) {
+      case "basic":
+        testPrompt += " Focus on testing the main functionality with simple inputs and outputs."
+        break
+      case "moderate":
+        testPrompt += " Include tests for edge cases and error handling in addition to main functionality."
+        break
+      case "comprehensive":
+        testPrompt +=
+          " Create an extensive test suite covering all functionality, edge cases, error handling, and performance considerations."
+        break
+    }
+
+    testPrompt += `\n\nCode to test:\n\`\`\`${language}\n${code}\n\`\`\`\n\nPlease provide well-structured tests with clear descriptions and assertions.`
+
+    // Generate tests
+    const { text } = await generateText({
+      model: groq("llama3-70b-8192"),
+      prompt: testPrompt,
       temperature: 0.3,
-      maxTokens: 3000,
+      maxTokens: 4000,
     })
 
-    return Response.json({ tests: result.text })
+    // Extract test code from response if needed
+    let testCode = text
+
+    // If the response contains markdown code blocks, extract just the code
+    const codeBlockRegex = new RegExp(`\`\`\`(?:${language}|${testFramework})?\n(.*?)\n\`\`\``, "s")
+    const match = text.match(codeBlockRegex)
+
+    if (match && match[1]) {
+      testCode = match[1]
+    }
+
+    // Return the generated tests
+    return NextResponse.json({
+      result: text,
+      testCode,
+      codeLength: code.length,
+      language,
+      testFramework,
+      coverageLevel,
+    })
   } catch (error) {
     console.error("Error generating tests:", error)
-    return Response.json({ error: "Failed to generate tests" }, { status: 500 })
+
+    // Handle different types of errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 })
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json({ error: "AI model error", message: error.message }, { status: 500 })
+    }
+
+    // Generic error
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 })
+  } finally {
+    // End performance monitoring
+    const duration = PerformanceMonitor.endMeasure("generate-tests-api")
+    console.log(`Generate tests API took ${duration?.toFixed(2)}ms`)
   }
 }

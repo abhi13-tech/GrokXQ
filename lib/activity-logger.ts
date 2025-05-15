@@ -1,22 +1,8 @@
 import { createServerClient } from "@/lib/supabase"
 
-type ActivityType =
-  | "prompt_generation"
-  | "code_generation"
-  | "code_review"
-  | "test_generation"
-  | "deployment"
-  | "login"
-  | "signup"
-  | "project_creation"
+type ActivityType = "prompt_generation" | "code_generation" | "code_review" | "test_generation" | "login" | "signup"
 
-export async function logActivity(
-  userId: string,
-  activityType: ActivityType,
-  description: string,
-  projectId?: string,
-  metadata?: any,
-) {
+export async function logActivity(userId: string, activityType: ActivityType, description: string, metadata?: any) {
   const supabase = createServerClient()
 
   try {
@@ -24,7 +10,6 @@ export async function logActivity(
       user_id: userId,
       activity_type: activityType,
       description,
-      project_id: projectId || null,
       metadata: metadata || null,
     })
 

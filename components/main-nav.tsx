@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Code, FileCode, GitBranch, MessageSquare, Play, Rocket, Zap } from "lucide-react"
+import { Code, FileCode, GitBranch, MessageSquare, Play, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 
 export function MainNav() {
@@ -46,25 +46,19 @@ export function MainNav() {
       icon: <GitBranch className="mr-2 h-4 w-4" />,
       active: pathname === "/development",
     },
-    {
-      name: "Deployment",
-      href: "/deployment",
-      icon: <Rocket className="mr-2 h-4 w-4" />,
-      active: pathname === "/deployment",
-    },
   ]
 
   return (
     <nav className="flex items-center space-x-4 lg:space-x-6">
       <Link href="/" className="flex items-center space-x-2">
         <motion.div
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-foreground flex items-center justify-center text-white font-bold"
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          className="w-8 h-8 rounded-md bg-minimal-accent1 flex items-center justify-center text-white font-bold"
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           GX
         </motion.div>
-        <span className="font-bold text-xl">GrokXQ</span>
+        <span className="font-bold text-xl minimal-gradient-text">GrokXQ</span>
       </Link>
       <div className="ml-10 flex items-center space-x-4 lg:space-x-6">
         {routes.map((route) => (
@@ -72,8 +66,8 @@ export function MainNav() {
             key={route.href}
             href={route.href}
             className={cn(
-              "flex items-center text-sm font-medium transition-colors hover:text-primary",
-              route.active ? "text-primary" : "text-muted-foreground",
+              "flex items-center text-sm font-medium transition-colors hover:text-minimal-accent1",
+              route.active ? "text-minimal-accent1" : "text-minimal-muted-foreground",
             )}
           >
             {route.icon}
