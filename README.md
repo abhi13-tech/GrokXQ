@@ -1,78 +1,79 @@
-GrokXQ Development Suite
+# GrokXQ Development Suite
 
-Overview
+## Overview
 
-GrokXQ Development Suite is a comprehensive AI-powered platform designed to streamline and enhance the software development workflow. By leveraging the speed and intelligence of Groq and XAI (Grok) models, this suite provides powerful tools for:
-	•	Code generation
-	•	Automated code review
-	•	Code optimization
-	•	Test suite creation
-	•	Prompt engineering
-	•	Team collaboration
+**GrokXQ Development Suite** is a comprehensive AI-powered platform designed to streamline and enhance the software development workflow. By leveraging the speed and intelligence of **Groq** and **XAI (Grok)** models, this suite provides powerful tools for:
 
-Table of Contents
-	•	Features
-	•	Technologies Used
-	•	Getting Started
-	•	Project Structure
-	•	Usage Examples
-	•	API Documentation
-	•	Database Schema
-	•	Architecture
-	•	Testing
-	•	Contributing
-	•	License
-	•	Acknowledgments
-	•	Contact
+- Code generation  
+- Automated code review  
+- Code optimization  
+- Test suite creation  
+- Prompt engineering  
+- Team collaboration  
 
-Features
+## Table of Contents
 
-🚀 Code Generation
-	•	Generate high-quality code snippets, functions, and components
-	•	Support for multiple programming languages and frameworks
-	•	Customizable generation parameters
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Usage Examples](#usage-examples)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
 
-🔍 Code Review
-	•	AI-powered analysis and improvement suggestions
-	•	Bug detection, security scanning, and performance insights
-	•	Actionable feedback for cleaner, better code
+## Features
 
-⚡ Code Optimization
-	•	Refactor and modernize codebases
-	•	Improve code readability and maintainability
-	•	Enhance performance through AI-driven insights
+### 🚀 Code Generation
+- Generate high-quality code snippets, functions, and components  
+- Support for multiple programming languages and frameworks  
+- Customizable generation parameters  
 
-🧪 Test Generation
-	•	Auto-generate test cases and full test suites
-	•	Target edge cases and potential failure points
-	•	Supports major testing libraries and frameworks
+### 🔍 Code Review
+- AI-powered analysis and improvement suggestions  
+- Bug detection, security scanning, and performance insights  
+- Actionable feedback for cleaner, better code  
 
-📝 Prompt Engineering
-	•	Create, save, and reuse AI prompts
-	•	Customize prompts for specific development needs
-	•	Share prompts across your team
+### ⚡ Code Optimization
+- Refactor and modernize codebases  
+- Improve code readability and maintainability  
+- Enhance performance through AI-driven insights  
 
-Technologies Used
-	•	Frontend: Next.js 14, React, Tailwind CSS, shadcn/ui
-	•	Backend: Next.js API Routes, Server Actions
-	•	Database: Supabase (PostgreSQL)
-	•	Authentication: Supabase Auth
-	•	AI Models: Groq (LLaMA 3, Mixtral, Gemma), XAI (Grok)
+### 🧪 Test Generation
+- Auto-generate test cases and full test suites  
+- Target edge cases and potential failure points  
+- Supports major testing libraries and frameworks  
 
-Getting Started
+### 📝 Prompt Engineering
+- Create, save, and reuse AI prompts  
+- Customize prompts for specific development needs  
+- Share prompts across your team  
 
-Prerequisites
-	•	Node.js 18.x or higher
-	•	npm or yarn
-	•	Supabase account
-	•	Groq API key
-	•	XAI (Grok) API key
+## Technologies Used
 
-Installation
-	1.	Clone the repository
+- **Frontend**: Next.js 14, React, Tailwind CSS, shadcn/ui  
+- **Backend**: Next.js API Routes, Server Actions  
+- **Database**: Supabase (PostgreSQL)  
+- **Authentication**: Supabase Auth  
+- **AI Models**: Groq (LLaMA 3, Mixtral, Gemma), XAI (Grok)  
 
-git clone https://github.com/abhi13-tech/GrokXQ.git
-cd grokxq-development-suite
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18.x or higher  
+- npm or yarn  
+- Supabase account  
+- Groq API key  
+- XAI (Grok) API key  
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/abhi13-tech/GrokXQ.git
+   cd grokxq-development-suite
 
 	2.	Install dependencies
 
@@ -80,8 +81,9 @@ npm install
 # or
 yarn install
 
+
 	3.	Configure environment variables
-Create a .env.local file in the root directory with:
+Create a .env.local file in the root directory:
 
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -90,6 +92,7 @@ GROQ_API_KEY=your_groq_api_key
 XAI_API_KEY=your_xai_api_key
 ADMIN_SECRET_KEY=your_admin_secret_key
 
+
 	4.	Initialize the database
 Run the SQL scripts from docs/DATABASE.md.
 	5.	Start the development server
@@ -97,6 +100,7 @@ Run the SQL scripts from docs/DATABASE.md.
 npm run dev
 # or
 yarn dev
+
 
 	6.	Open http://localhost:3000 in your browser.
 
@@ -158,26 +162,26 @@ const response = await fetch('/api/review-code', {
 const data = await response.json();
 console.log(data.review);
 
-
 Contributing
 
-Everyone is welcome contributions! To get started:
+Everyone is welcome to contribute! To get started:
 	1.	Fork the repository
 	2.	Create a new branch
 	3.	Make your changes
 	4.	Commit and push (git commit -m 'Your message')
 	5.	Open a Pull Request
 
-Ensure your code follows the project’s standards and includes tests.
+Please ensure your code follows the project’s standards and includes appropriate tests.
 
 Acknowledgments
-	•	Groq — for the AI hardware and models
-	•	XAI — for Grok, the conversational model
-	•	Supabase — backend and authentication
-	•	Next.js — for the frontend framework
-	•	Tailwind CSS — utility-first styling
-	•	shadcn/ui — accessible UI components
+	•	Groq — AI hardware and models
+	•	XAI — Grok conversational model
+	•	Supabase — Backend and authentication
+	•	Next.js — Frontend framework
+	•	Tailwind CSS — Utility-first styling
+	•	shadcn/ui — UI components
 
 Contact
 
-For questions, issues, or support, open a GitHub issue or email: adunooriabhishekreddy@gmail.com
+For questions, issues, or support, open a GitHub issue or email:
+adunooriabhishekreddy@gmail.com
