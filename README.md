@@ -71,7 +71,7 @@ Prerequisites
 Installation
 	1.	Clone the repository
 
-git clone https://github.com/yourusername/grokxq-development-suite.git
+git clone https://github.com/abhi13-tech/GrokXQ.git
 cd grokxq-development-suite
 
 	2.	Install dependencies
