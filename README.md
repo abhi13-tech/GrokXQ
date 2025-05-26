@@ -8,8 +8,7 @@
 - Automated code review  
 - Code optimization  
 - Test suite creation  
-- Prompt engineering  
-- Team collaboration  
+- Prompt engineering   
 
 ## Table of Contents
 
