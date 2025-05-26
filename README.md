@@ -1,30 +1,183 @@
-# Groq Prompt Generator
+GrokXQ Development Suite
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Overview
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/abhi13-techs-projects/v0-groq-prompt-generator)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/IvwqnkKWTiv)
+GrokXQ Development Suite is a comprehensive AI-powered platform designed to streamline and enhance the software development workflow. By leveraging the speed and intelligence of Groq and XAI (Grok) models, this suite provides powerful tools for:
+	•	Code generation
+	•	Automated code review
+	•	Code optimization
+	•	Test suite creation
+	•	Prompt engineering
+	•	Team collaboration
 
-## Overview
+Table of Contents
+	•	Features
+	•	Technologies Used
+	•	Getting Started
+	•	Project Structure
+	•	Usage Examples
+	•	API Documentation
+	•	Database Schema
+	•	Architecture
+	•	Testing
+	•	Contributing
+	•	License
+	•	Acknowledgments
+	•	Contact
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+Features
 
-## Deployment
+🚀 Code Generation
+	•	Generate high-quality code snippets, functions, and components
+	•	Support for multiple programming languages and frameworks
+	•	Customizable generation parameters
 
-Your project is live at:
+🔍 Code Review
+	•	AI-powered analysis and improvement suggestions
+	•	Bug detection, security scanning, and performance insights
+	•	Actionable feedback for cleaner, better code
 
-**[https://vercel.com/abhi13-techs-projects/v0-groq-prompt-generator](https://vercel.com/abhi13-techs-projects/v0-groq-prompt-generator)**
+⚡ Code Optimization
+	•	Refactor and modernize codebases
+	•	Improve code readability and maintainability
+	•	Enhance performance through AI-driven insights
 
-## Build your app
+🧪 Test Generation
+	•	Auto-generate test cases and full test suites
+	•	Target edge cases and potential failure points
+	•	Supports major testing libraries and frameworks
 
-Continue building your app on:
+📝 Prompt Engineering
+	•	Create, save, and reuse AI prompts
+	•	Customize prompts for specific development needs
+	•	Share prompts across your team
 
-**[https://v0.dev/chat/projects/IvwqnkKWTiv](https://v0.dev/chat/projects/IvwqnkKWTiv)**
+Technologies Used
+	•	Frontend: Next.js 14, React, Tailwind CSS, shadcn/ui
+	•	Backend: Next.js API Routes, Server Actions
+	•	Database: Supabase (PostgreSQL)
+	•	Authentication: Supabase Auth
+	•	AI Models: Groq (LLaMA 3, Mixtral, Gemma), XAI (Grok)
 
-## How It Works
+Getting Started
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+Prerequisites
+	•	Node.js 18.x or higher
+	•	npm or yarn
+	•	Supabase account
+	•	Groq API key
+	•	XAI (Grok) API key
+
+Installation
+	1.	Clone the repository
+
+git clone https://github.com/yourusername/grokxq-development-suite.git
+cd grokxq-development-suite
+
+	2.	Install dependencies
+
+npm install
+# or
+yarn install
+
+	3.	Configure environment variables
+Create a .env.local file in the root directory with:
+
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+GROQ_API_KEY=your_groq_api_key
+XAI_API_KEY=your_xai_api_key
+ADMIN_SECRET_KEY=your_admin_secret_key
+
+	4.	Initialize the database
+Run the SQL scripts from docs/DATABASE.md.
+	5.	Start the development server
+
+npm run dev
+# or
+yarn dev
+
+	6.	Open http://localhost:3000 in your browser.
+
+Project Structure
+
+├── app/                  # Next.js App Router
+│   ├── api/              # API Routes
+│   ├── (auth)/           # Auth pages
+│   ├── dashboard/        # Dashboard
+│   ├── code-generation/  # Code generation UI
+│   ├── code-review/      # Code review UI
+│   ├── code-optimizer/   # Optimization tools
+│   ├── testing/          # Testing UI
+│   └── documentation/    # Docs pages
+├── components/           # React components
+│   ├── ui/               # UI components
+│   ├── auth/             # Auth-related components
+│   ├── dashboard/        # Dashboard-specific components
+│   └── ...               # Others by feature
+├── contexts/             # React contexts
+├── hooks/                # Custom hooks
+├── lib/                  # Utility functions
+├── public/               # Static assets
+├── docs/                 # Markdown docs
+└── types/                # TypeScript types
+
+Usage Examples
+
+Code Generation
+
+const response = await fetch('/api/generate-code', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    description: 'Create a React component that displays a list of items with pagination',
+    language: 'typescript',
+    framework: 'react',
+    additionalContext: 'Use Tailwind CSS for styling',
+    model: 'groq-llama-3.1-70b-instant',
+  }),
+});
+
+const data = await response.json();
+console.log(data.code);
+
+Code Review
+
+const response = await fetch('/api/review-code', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    code: 'function calculateTotal(items) { let total = 0; for (var i = 0; i < items.length; i++) { total += items[i].price; } return total; }',
+    language: 'javascript',
+    reviewType: 'general',
+    model: 'groq-llama-3.1-8b-instant',
+  }),
+});
+
+const data = await response.json();
+console.log(data.review);
+
+
+Contributing
+
+Everyone is welcome contributions! To get started:
+	1.	Fork the repository
+	2.	Create a new branch
+	3.	Make your changes
+	4.	Commit and push (git commit -m 'Your message')
+	5.	Open a Pull Request
+
+Ensure your code follows the project’s standards and includes tests.
+
+Acknowledgments
+	•	Groq — for the AI hardware and models
+	•	XAI — for Grok, the conversational model
+	•	Supabase — backend and authentication
+	•	Next.js — for the frontend framework
+	•	Tailwind CSS — utility-first styling
+	•	shadcn/ui — accessible UI components
+
+Contact
+
+For questions, issues, or support, open a GitHub issue or email: adunooriabhishekreddy@gmail.com
