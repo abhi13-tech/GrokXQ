@@ -1,68 +1,75 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { xai } from "@ai-sdk/xai"
 import { generateText } from "ai"
-import { groq } from "@ai-sdk/groq"
-import { z } from "zod"
-import { PerformanceMonitor } from "@/lib/performance-monitor"
+import { ErrorHandler } from "@/lib/error-handler"
 
-// Input validation schema
-const promptRequestSchema = z.object({
-  prompt: z.string().min(3).max(1000),
-  model: z.string().min(1),
-  temperature: z.number().min(0).max(1).optional().default(0.7),
-  maxTokens: z.number().int().positive().max(4000).optional().default(1000),
-})
-
-export async function POST(req: NextRequest) {
-  // Start performance monitoring
-  PerformanceMonitor.startMeasure("generate-prompt-api")
-
+export async function POST(req: Request) {
   try {
-    // Parse and validate request body
-    const body = await req.json()
+    const { topic, context, tone, length, format, additionalInstructions } = await req.json()
 
-    const validationResult = promptRequestSchema.safeParse(body)
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: "Validation error",
-          details: validationResult.error.errors,
-        },
-        { status: 400 },
-      )
+    // Validate inputs
+    if (!topic) {
+      return NextResponse.json({ error: "Missing required field: topic" }, { status: 400 })
     }
 
-    const { prompt, model, temperature, maxTokens } = validationResult.data
+    // Create a system message that instructs the model how to generate a prompt
+    const systemMessage = `You are an expert prompt engineer specializing in creating effective prompts for AI models.
+    
+    Your task is to create a high-quality prompt based on the following specifications:
+    - Topic: ${topic}
+    - Context: ${context || "General use"}
+    - Tone: ${tone || "Neutral"}
+    - Length: ${length || "Medium"}
+    - Format: ${format || "Standard prompt"}
+    - Additional Instructions: ${additionalInstructions || "None provided"}
+    
+    The prompt should be clear, specific, and designed to elicit the best possible response from an AI model.
+    
+    Format your response as follows:
+    1. First, provide the prompt itself without any explanations or markdown
+    2. Then, after the prompt, include "# Prompt Analysis" followed by a brief explanation of:
+       - Why this prompt is effective
+       - How to use it effectively
+       - Potential variations for different use cases`
 
-    // Select the appropriate model
-    const modelToUse = model === "groq-llama3-70b" ? groq("llama3-70b-8192") : groq("mixtral-8x7b-32768")
-
-    // Generate the prompt
+    // Generate the prompt using XAI (Grok)
     const { text } = await generateText({
-      model: modelToUse,
-      prompt,
-      temperature,
-      maxTokens,
+      model: xai("grok-1"),
+      messages: [
+        {
+          role: "system",
+          content: systemMessage,
+        },
+        {
+          role: "user",
+          content: `Please create a prompt about: ${topic}`,
+        },
+      ],
+      temperature: 0.7,
+      maxTokens: 2000,
     })
 
-    // Return the generated prompt
-    return NextResponse.json({ result: text })
+    // Split the response into prompt and analysis
+    const parts = text.split("# Prompt Analysis")
+    const generatedPrompt = parts[0].trim()
+    const analysis = parts.length > 1 ? parts[1].trim() : "No analysis provided."
+
+    return NextResponse.json({
+      prompt: generatedPrompt,
+      analysis,
+      model: "grok-1",
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     console.error("Error generating prompt:", error)
+    ErrorHandler.logError(error, { service: "prompt-generation-api" })
 
-    // Handle different types of errors
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 })
-    }
-
-    if (error instanceof Error) {
-      return NextResponse.json({ error: "AI model error", message: error.message }, { status: 500 })
-    }
-
-    // Generic error
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 })
-  } finally {
-    // End performance monitoring
-    const duration = PerformanceMonitor.endMeasure("generate-prompt-api")
-    console.log(`Generate prompt API took ${duration?.toFixed(2)}ms`)
+    return NextResponse.json(
+      {
+        error: "Failed to generate prompt",
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
+      },
+      { status: 500 },
+    )
   }
 }

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { checkAuthStatus } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
 
 export function DebugPanel() {
   const { user, profile, session, isLoading, isOffline } = useAuth()
@@ -12,14 +12,25 @@ export function DebugPanel() {
   const [isVisible, setIsVisible] = useState(false)
 
   const checkStatus = async () => {
-    const status = await checkAuthStatus()
-    setSupabaseStatus(status)
-  }
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
 
-  useEffect(() => {
-    // Check status on mount
-    checkStatus()
-  }, [])
+      setSupabaseStatus({
+        isAuthenticated: !!session,
+        user: session?.user || null,
+        error: error || null,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      setSupabaseStatus({
+        error: error,
+        timestamp: new Date().toISOString(),
+      })
+    }
+  }
 
   if (!isVisible) {
     return (
@@ -66,22 +77,29 @@ export function DebugPanel() {
 
         <div>
           <h3 className="font-bold mb-1">Supabase Status</h3>
-          <div className="space-y-1">
-            <p>
-              <span className="font-semibold">Auth Status:</span>
-              {supabaseStatus ? (supabaseStatus.isAuthenticated ? "Authenticated" : "Not authenticated") : "Unknown"}
-            </p>
-            {supabaseStatus?.user && (
+          <Button size="sm" onClick={checkStatus} className="mb-2">
+            Check Supabase Status
+          </Button>
+
+          {supabaseStatus && (
+            <div className="space-y-1 border p-2 rounded text-xs">
               <p>
-                <span className="font-semibold">User Email:</span> {supabaseStatus.user.email}
+                <span className="font-semibold">Auth Status:</span>
+                {supabaseStatus.isAuthenticated ? " Authenticated" : " Not authenticated"}
               </p>
-            )}
-            {supabaseStatus?.error && (
-              <p className="text-red-500">
-                <span className="font-semibold">Error:</span> {supabaseStatus.error.message}
-              </p>
-            )}
-          </div>
+              {supabaseStatus.user && (
+                <p>
+                  <span className="font-semibold">User Email:</span> {supabaseStatus.user.email}
+                </p>
+              )}
+              {supabaseStatus.error && (
+                <p className="text-red-500">
+                  <span className="font-semibold">Error:</span> {supabaseStatus.error.message}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">Checked at: {supabaseStatus.timestamp}</p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -102,8 +120,8 @@ export function DebugPanel() {
           </div>
         </div>
 
-        <Button size="sm" onClick={checkStatus} className="w-full">
-          Refresh Status
+        <Button size="sm" onClick={() => window.location.reload()} className="w-full">
+          Reload Page
         </Button>
       </CardContent>
     </Card>

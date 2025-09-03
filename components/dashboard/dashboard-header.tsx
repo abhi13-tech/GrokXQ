@@ -1,43 +1,20 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { motion } from "framer-motion"
+import { useAuth } from "@/contexts/auth-context"
+import { ConnectionStatusIndicator } from "@/components/connection-status-indicator"
 
-interface DashboardHeaderProps {
-  heading: string
-  text?: string
-  children?: ReactNode
-}
+export function DashboardHeader() {
+  const { user, profile } = useAuth()
 
-export function DashboardHeader({ heading, text, children }: DashboardHeaderProps) {
   return (
-    <motion.div
-      className="flex items-center justify-between px-2"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="grid gap-1">
-        <motion.h1
-          className="text-3xl font-bold tracking-tight future-gradient-text"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          {heading}
-        </motion.h1>
-        {text && (
-          <motion.p
-            className="text-future-muted-foreground"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            {text}
-          </motion.p>
-        )}
+    <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Welcome, {profile?.full_name || user?.email?.split("@")[0] || "User"}
+        </h2>
+        <p className="text-muted-foreground">Here's an overview of your AI development activities</p>
       </div>
-      {children}
-    </motion.div>
+      <ConnectionStatusIndicator />
+    </div>
   )
 }

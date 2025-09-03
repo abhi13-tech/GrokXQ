@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import { useState, useEffect } from "react"
-import { UserNav } from "@/components/user-nav"
 import { MainNav } from "@/components/main-nav"
 
 export function SiteHeader() {
@@ -104,7 +103,6 @@ export function SiteHeader() {
         )}
 
         <div className="ml-auto flex items-center space-x-2">
-          <UserNav />
           <ModeToggle />
         </div>
       </div>

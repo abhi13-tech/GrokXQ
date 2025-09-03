@@ -1,137 +1,169 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
-import { Lightbulb } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { AlertCircle, RefreshCw } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
-type Insight = {
-  id: string
-  title: string
-  description: string
-  score: number
-  recommendations: string[]
-  user_id: string
-  created_at: string
+type InsightData = {
+  category: string
+  count: number
 }
 
 export function AIInsights() {
-  const { user } = useAuth()
-  const [insights, setInsights] = useState<Insight[]>([])
+  const { user, connectionStatus } = useAuth()
+  const [data, setData] = useState<InsightData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchInsights() {
-      if (!user) return
+  const fetchInsights = async () => {
+    if (!user) return
 
-      try {
-        setIsLoading(true)
-        const { data, error } = await supabase
-          .from("ai_insights")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(3)
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        if (error) throw error
-        setInsights(data || [])
-      } catch (error) {
-        console.error("Error fetching insights:", error)
-      } finally {
-        setIsLoading(false)
+      console.log("[AIInsights] Fetching insights from Supabase")
+
+      // Fetch prompt count
+      const { count: promptCount, error: promptError } = await supabase
+        .from("prompts")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+
+      // Fetch code generation count
+      const { count: codeGenCount, error: codeGenError } = await supabase
+        .from("code_generations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+
+      // Fetch code review count
+      const { count: reviewCount, error: reviewError } = await supabase
+        .from("code_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+
+      // Fetch test count
+      const { count: testCount, error: testError } = await supabase
+        .from("tests")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+
+      if (promptError || codeGenError || reviewError || testError) {
+        console.error("[AIInsights] Error fetching insights:", { promptError, codeGenError, reviewError, testError })
+        throw new Error("Failed to fetch insights data")
       }
+
+      setData([
+        { category: "Prompts", count: promptCount || 0 },
+        { category: "Code Gen", count: codeGenCount || 0 },
+        { category: "Reviews", count: reviewCount || 0 },
+        { category: "Tests", count: testCount || 0 },
+      ])
+    } catch (error: any) {
+      console.error("[AIInsights] Exception fetching insights:", error)
+      setError(error.message || "Failed to load insights")
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchInsights()
-  }, [user])
-
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-        {Array.from({ length: 2 }).map((_, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <Skeleton className="h-5 w-1/2 mb-1" />
-              <Skeleton className="h-4 w-3/4" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-12" />
-                  </div>
-                  <Skeleton className="h-4 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-1/3" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
   }
 
-  if (insights.length === 0) {
+  useEffect(() => {
+    if (user && connectionStatus === "connected") {
+      fetchInsights()
+    } else if (!user) {
+      setIsLoading(false)
+    }
+  }, [user, connectionStatus])
+
+  if (connectionStatus === "error") {
     return (
       <Card>
         <CardHeader>
           <CardTitle>AI Insights</CardTitle>
-          <CardDescription>Personalized recommendations for your projects</CardDescription>
+          <CardDescription>Model performance and usage statistics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="rounded-full bg-primary/10 p-4 mb-4">
-              <Lightbulb className="h-8 w-8 text-primary" />
-            </div>
-            <p className="text-muted-foreground">No insights available yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Use the platform more to receive personalized AI insights
-            </p>
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connection Error</AlertTitle>
+            <AlertDescription>Unable to load insights due to connection issues.</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Insights</CardTitle>
+          <CardDescription>Model performance and usage statistics</CardDescription>
+        </CardHeader>
+        <CardContent className="px-2">
+          <Skeleton className="h-[200px] w-full" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Insights</CardTitle>
+          <CardDescription>Model performance and usage statistics</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button onClick={fetchInsights} size="sm" className="mt-2">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-      {insights.map((insight) => (
-        <Card key={insight.id}>
-          <CardHeader>
-            <CardTitle>{insight.title}</CardTitle>
-            <CardDescription>{insight.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Score</span>
-                  <span className="text-sm font-medium">{insight.score}%</span>
-                </div>
-                <Progress value={insight.score} />
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Recommendations</h4>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  {insight.recommendations.map((rec, i) => (
-                    <li key={i} className="list-disc list-inside">
-                      {rec}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>AI Insights</CardTitle>
+        <CardDescription>Model performance and usage statistics</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">Top Used Model</h3>
+            <p className="text-xl font-semibold">Groq-Llama-3.1-8B-Instruct</p>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">Average Response Time</h3>
+            <p className="text-xl font-semibold">1.2 seconds</p>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">Most Used Feature</h3>
+            <p className="text-xl font-semibold">Code Generation</p>
+          </div>
+
+          <div className="pt-2">
+            <p className="text-xs text-muted-foreground">
+              These are example statistics. Connect to an AI model to see real-time metrics.
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
