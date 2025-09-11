@@ -21,58 +21,48 @@ const fetchWithRetry = async (url: RequestInfo | URL, options: RequestInit, retr
   }
 }
 
-// Check if we're in a browser environment
-const isBrowser = typeof window !== "undefined"
+// Create a single supabase client for the browser
+const createBrowserClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Get environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-
-// Log environment variables (without exposing full keys)
-console.log("[Supabase] Initializing with URL:", supabaseUrl)
-console.log("[Supabase] Anon key available:", !!supabaseAnonKey)
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("[Supabase] Missing environment variables")
-}
-
-// Create a single supabase client for the entire app
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: isBrowser, // Only persist session in browser environments
-    autoRefreshToken: isBrowser,
-    detectSessionInUrl: isBrowser,
-  },
-  global: {
-    fetch: (...args) => {
-      return fetch(...args).catch((error) => {
-        console.error("[Supabase] Fetch error:", error)
-        throw error
-      })
-    },
-  },
-})
-
-// Log initialization status
-console.log("[Supabase] Client initialized")
-
-// Add a debug function to check auth status
-export const checkAuthStatus = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession()
-    if (error) {
-      console.error("[Supabase] Error checking auth status:", error)
-      return { isAuthenticated: false, error }
-    }
-    return {
-      isAuthenticated: !!data.session,
-      user: data.session?.user || null,
-      session: data.session,
-    }
-  } catch (error) {
-    console.error("[Supabase] Exception checking auth status:", error)
-    return { isAuthenticated: false, error }
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Supabase environment variables are missing:", {
+      url: supabaseUrl ? "Set" : "Missing",
+      key: supabaseAnonKey ? "Set" : "Missing",
+    })
+    // Return a mock client if environment variables are missing
+    return createMockClient()
   }
+
+  return createClient<Database>(supabaseUrl as string, supabaseAnonKey as string, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+    global: {
+      fetch: async (url, options) => {
+        // Check if we're online first
+        if (!isOnline()) {
+          console.warn("Offline: Unable to connect to Supabase")
+          throw new Error("You are offline. Please check your internet connection.")
+        }
+
+        try {
+          // Use retry mechanism for fetch
+          return await fetchWithRetry(url, options)
+        } catch (err) {
+          console.error("Supabase fetch error:", err)
+          throw err
+        }
+      },
+    },
+    // Increase timeouts
+    realtime: {
+      timeout: 60000, // 60 seconds
+    },
+  })
 }
 
 // Create a mock client for offline/error scenarios
@@ -105,13 +95,18 @@ const createMockClient = () => {
   } as any
 }
 
+// For client components - with local storage fallback
+let supabaseInstance: any
+export const supabase =
+  typeof window !== "undefined" ? supabaseInstance || (supabaseInstance = createBrowserClient()) : createMockClient()
+
 // For server components and API routes
 export const createServerClient = () => {
   const supabaseUrl = process.env.SUPABASE_URL || (process.env.NEXT_PUBLIC_SUPABASE_URL as string)
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("[Supabase] Server environment variables are missing")
+    console.error("Server Supabase environment variables are missing")
     return createMockClient()
   }
 

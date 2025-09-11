@@ -64,103 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Debug function to log auth state
-  const logAuthState = (message: string) => {
-    console.log(`[Auth] ${message}`, {
-      user: user?.email || "null",
-      isAuthenticated: !!user,
-      isLoading,
-      isOffline,
-    })
-  }
-
-  // Function to fetch user profile with error handling
-  const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
-    if (isOffline) {
-      console.log("Offline: Using cached profile data")
-      return getFromLocalStorage(PROFILE_STORAGE_KEY)
-    }
-
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single()
-
-      if (profileError) {
-        console.error("Error fetching profile:", profileError)
-        // Fall back to cached data if available
-        return getFromLocalStorage(PROFILE_STORAGE_KEY)
-      }
-
-      if (profileData) {
-        // Cache the profile data
-        saveToLocalStorage(PROFILE_STORAGE_KEY, profileData)
-        return profileData
-      }
-
-      return null
-    } catch (error) {
-      console.error("Exception fetching profile:", error)
-      // Fall back to cached data if available
-      return getFromLocalStorage(PROFILE_STORAGE_KEY)
-    }
-  }
-
-  // Function to refresh auth state
-  const refreshAuthState = async () => {
-    try {
-      logAuthState("Refreshing auth state")
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
-
-      if (error) {
-        console.error("Error getting session:", error)
-        return
-      }
-
-      setSession(session)
-
-      if (session?.user) {
-        logAuthState(`Session found for user: ${session.user.email}`)
-        setUser(session.user)
-        saveToLocalStorage(USER_STORAGE_KEY, session.user)
-
-        // Try to fetch profile
-        const profileData = await fetchUserProfile(session.user.id)
-        if (profileData) {
-          setProfile(profileData)
-          logAuthState("Profile loaded successfully")
-        } else {
-          logAuthState("No profile found for user")
-        }
-      } else {
-        logAuthState("No active session found")
-        setUser(null)
-        setProfile(null)
-      }
-    } catch (error) {
-      console.error("Error refreshing auth state:", error)
-    }
-  }
-
-  // Function to refresh the user profile
-  const refreshProfile = async () => {
-    if (!user) return
-
-    try {
-      const profileData = await fetchUserProfile(user.id)
-      if (profileData) {
-        setProfile(profileData)
-      }
-    } catch (error) {
-      console.error("Error refreshing profile:", error)
-    }
-  }
-
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
@@ -199,19 +102,97 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Initialize auth state
+  // Function to fetch user profile with error handling
+  const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
+    if (isOffline) {
+      console.log("Offline: Using cached profile data")
+      return getFromLocalStorage(PROFILE_STORAGE_KEY)
+    }
+
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single()
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError)
+        // Fall back to cached data if available
+        return getFromLocalStorage(PROFILE_STORAGE_KEY)
+      }
+
+      if (profileData) {
+        // Cache the profile data
+        saveToLocalStorage(PROFILE_STORAGE_KEY, profileData)
+        return profileData
+      }
+
+      return null
+    } catch (error) {
+      console.error("Exception fetching profile:", error)
+      // Fall back to cached data if available
+      return getFromLocalStorage(PROFILE_STORAGE_KEY)
+    }
+  }
+
+  // Function to refresh auth state
+  const refreshAuthState = async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+
+      if (error) {
+        console.error("Error getting session:", error)
+        return
+      }
+
+      setSession(session)
+
+      if (session?.user) {
+        setUser(session.user)
+        saveToLocalStorage(USER_STORAGE_KEY, session.user)
+
+        // Try to fetch profile
+        const profileData = await fetchUserProfile(session.user.id)
+        if (profileData) {
+          setProfile(profileData)
+        }
+      } else {
+        setUser(null)
+        setProfile(null)
+      }
+    } catch (error) {
+      console.error("Error refreshing auth state:", error)
+    }
+  }
+
+  // Function to refresh the user profile
+  const refreshProfile = async () => {
+    if (!user) return
+
+    try {
+      const profileData = await fetchUserProfile(user.id)
+      if (profileData) {
+        setProfile(profileData)
+      }
+    } catch (error) {
+      console.error("Error refreshing profile:", error)
+    }
+  }
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true)
-        logAuthState("Initializing auth")
 
         // Try to get cached data first for faster loading
         const cachedUser = getFromLocalStorage(USER_STORAGE_KEY)
         const cachedProfile = getFromLocalStorage(PROFILE_STORAGE_KEY)
 
         if (cachedUser) {
-          logAuthState("Using cached user data")
           setUser(cachedUser)
           setProfile(cachedProfile)
         }
@@ -222,7 +203,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Error initializing auth:", error)
       } finally {
         setIsLoading(false)
-        logAuthState("Auth initialization complete")
       }
     }
 
@@ -236,7 +216,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
 
         if (session?.user) {
-          logAuthState(`Auth state changed: ${event} for user ${session.user.email}`)
           setUser(session.user)
           saveToLocalStorage(USER_STORAGE_KEY, session.user)
 
@@ -253,11 +232,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // Refresh the page to ensure all components reflect the authenticated state
           if (event === "SIGNED_IN") {
-            logAuthState("User signed in, redirecting to dashboard")
-            router.push("/dashboard")
+            router.refresh()
           }
         } else {
-          logAuthState(`Auth state changed: ${event}, no user`)
           setUser(null)
           setProfile(null)
 
@@ -265,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (event === "SIGNED_OUT") {
             localStorage.removeItem(USER_STORAGE_KEY)
             localStorage.removeItem(PROFILE_STORAGE_KEY)
-            router.push("/")
+            router.refresh()
           }
         }
       } catch (error) {
@@ -289,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      logAuthState(`Attempting to sign in with email: ${email}`)
+      console.log("Signing in with email:", email)
       const { error, data } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
@@ -297,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error
       }
 
-      logAuthState("Sign in successful")
+      console.log("Sign in successful, session:", data.session ? "Valid" : "Invalid")
 
       // Set user and session immediately
       setUser(data.user)
@@ -318,7 +295,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Redirect to dashboard after successful sign-in
-      logAuthState("Redirecting to dashboard after sign in")
       router.push("/dashboard")
 
       toast({
@@ -348,7 +324,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      logAuthState(`Attempting to sign up with email: ${email}`)
       // First, create the auth user
       const { error: signUpError, data } = await supabase.auth.signUp({
         email,
@@ -375,7 +350,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // If auto-confirmed, ensure profile exists
       if (data?.user) {
-        logAuthState("User created successfully, creating profile")
         // Try to create profile, but don't block sign-up if it fails
         try {
           // Check if profile exists
@@ -405,7 +379,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         saveToLocalStorage(USER_STORAGE_KEY, data.user)
 
         // Redirect to dashboard after successful sign-up
-        logAuthState("Redirecting to dashboard after sign up")
         router.push("/dashboard")
 
         toast({
@@ -424,7 +397,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      logAuthState("Signing out")
       if (!isOffline) {
         await supabase.auth.signOut()
       }
@@ -525,21 +497,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const value = {
-    user,
-    profile,
-    session,
-    isLoading,
-    isOffline,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    updatePassword,
-    refreshProfile,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        session,
+        isLoading,
+        isOffline,
+        signIn,
+        signUp,
+        signOut,
+        resetPassword,
+        updatePassword,
+        refreshProfile,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {

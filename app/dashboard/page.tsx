@@ -10,10 +10,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
 import { FileText, Code, GitPullRequest, ClipboardList } from "lucide-react"
 import { WelcomeGuide } from "@/components/dashboard/welcome-guide"
-import { DashboardLoading } from "@/components/dashboard/dashboard-loading"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type ActivityStats = {
   promptCount: number
@@ -23,9 +20,8 @@ type ActivityStats = {
 }
 
 export default function DashboardPage() {
-  const { user, profile, isLoading: authLoading } = useAuth()
+  const { user, profile } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState<ActivityStats>({
     promptCount: 0,
     codeGenCount: 0,
@@ -38,29 +34,14 @@ export default function DashboardPage() {
       if (!user) return
 
       try {
-        console.log("[Dashboard] Fetching dashboard data for user:", user.email)
-        setError(null)
-
         // Fetch activity counts
-        const [
-          { count: promptCount, error: promptError },
-          { count: codeGenCount, error: codeGenError },
-          { count: codeReviewCount, error: codeReviewError },
-          { count: testCount, error: testError },
-        ] = await Promise.all([
-          supabase.from("prompts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("code_generations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("code_reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("tests").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        ])
-
-        // Check for errors
-        if (promptError || codeGenError || codeReviewError || testError) {
-          console.error("[Dashboard] Error fetching counts:", { promptError, codeGenError, codeReviewError, testError })
-          throw new Error("Failed to fetch dashboard data")
-        }
-
-        console.log("[Dashboard] Data fetched successfully:", { promptCount, codeGenCount, codeReviewCount, testCount })
+        const [{ count: promptCount }, { count: codeGenCount }, { count: codeReviewCount }, { count: testCount }] =
+          await Promise.all([
+            supabase.from("prompts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("code_generations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("code_reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("tests").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+          ])
 
         setStats({
           promptCount: promptCount || 0,
@@ -68,66 +49,86 @@ export default function DashboardPage() {
           codeReviewCount: codeReviewCount || 0,
           testCount: testCount || 0,
         })
-      } catch (error: any) {
-        console.error("[Dashboard] Error fetching dashboard data:", error)
-        setError(error.message || "Failed to load dashboard data. Please try again later.")
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    // Only fetch data if user is authenticated and auth loading is complete
-    if (user && !authLoading) {
-      console.log("[Dashboard] User authenticated, fetching data")
+    if (user) {
       fetchDashboardData()
-    } else if (!authLoading) {
-      console.log("[Dashboard] No authenticated user, skipping data fetch")
+    } else {
       setIsLoading(false)
     }
-  }, [user, authLoading])
+  }, [user])
 
-  // Show loading state while auth is loading or data is being fetched
-  if (authLoading || isLoading) {
-    return (
-      <DashboardShell>
-        <DashboardLoading />
-      </DashboardShell>
-    )
-  }
-
-  // Show error state
-  if (error) {
+  if (isLoading) {
     return (
       <DashboardShell>
         <DashboardHeader heading="Dashboard" text="Welcome to your development dashboard." />
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <Button onClick={() => window.location.reload()} className="mt-4">
-          Retry
-        </Button>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="h-4 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
+          <div className="col-span-4">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="flex items-start gap-4 rounded-lg border p-3">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="col-span-3">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-40 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </DashboardShell>
     )
   }
 
-  // Show not authenticated state
   if (!user) {
     return (
       <DashboardShell>
         <DashboardHeader heading="Dashboard" text="Welcome to your development dashboard." />
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">Please sign in to view your dashboard.</p>
-          <Button asChild>
-            <a href="/sign-in">Sign In</a>
-          </Button>
         </div>
       </DashboardShell>
     )
   }
 
-  // Show welcome guide for new users
   if (stats.promptCount === 0 && stats.codeGenCount === 0 && stats.codeReviewCount === 0 && stats.testCount === 0) {
     return (
       <DashboardShell>
@@ -137,7 +138,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Show dashboard with data
   return (
     <DashboardShell>
       <DashboardHeader heading="Dashboard" text="Welcome to your development dashboard." />
