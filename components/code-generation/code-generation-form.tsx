@@ -246,14 +246,7 @@ export function CodeGenerationForm() {
                     <FormItem>
                       <FormLabel className="text-slate-300">AI Model</FormLabel>
                       <FormControl>
-                        <div className="w-full">
-                          <ModelSelector
-                            value={field.value}
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                          />
-                        </div>
+                        <ModelSelector value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormDescription className="text-slate-400">
                         Select the AI model to use for code generation.

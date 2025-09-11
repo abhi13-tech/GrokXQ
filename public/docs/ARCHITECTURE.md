@@ -123,7 +123,7 @@ The application is designed to be deployed on Vercel, taking advantage of:
 
 Now, let's update the site header to include a link to the documentation:
 
-```typescriptreact file="components/site-header.tsx"
+\`\`\`typescriptreact file="components/site-header.tsx"
 [v0-no-op-code-block-prefix]"use client"
 
 import Link from "next/link"

@@ -101,12 +101,6 @@ export default function Home() {
       description: "Generate comprehensive test suites and identify edge cases for robust application testing.",
       href: "/testing",
     },
-    {
-      icon: <Code className="h-6 w-6 text-minimal-accent1" />,
-      title: "Code Review",
-      description: "Get AI-powered reviews and suggestions for your code.",
-      href: "/code-review",
-    },
   ]
 
   return (
@@ -159,9 +153,9 @@ export default function Home() {
                     </motion.div>
                   </Button>
                 </Link>
-                <Link href="/documentation">
+                <Link href="#features">
                   <Button size="lg" variant="outline" className="group">
-                    View Documentation
+                    Explore Features
                     <motion.span
                       className="ml-1 inline-block"
                       animate={{ y: [0, 3, 0] }}

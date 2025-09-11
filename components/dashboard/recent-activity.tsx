@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/contexts/auth-context"
+import { supabase } from "@/lib/supabase"
 import { formatDistanceToNow } from "date-fns"
 import { Code, FileText, GitPullRequest, ClipboardList } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useDefault } from "@/contexts/default-context"
 
 type Activity = {
   id: string
@@ -14,53 +15,29 @@ type Activity = {
   created_at: string
 }
 
-// Sample activities data for the stateless app
-const sampleActivities: Activity[] = [
-  {
-    id: "1",
-    activity_type: "code_generation",
-    description: "Generated React authentication component",
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "2",
-    activity_type: "code_review",
-    description: "Reviewed API implementation code",
-    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "3",
-    activity_type: "test_generation",
-    description: "Generated unit tests for user service",
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "4",
-    activity_type: "prompt_generation",
-    description: "Created prompt for database schema design",
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
 export function RecentActivity() {
-  const { user } = useDefault()
+  const { user } = useAuth()
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function fetchActivities() {
+      if (!user) return
+
       try {
         setIsLoading(true)
+        const { data, error } = await supabase
+          .from("activity_logs")
+          .select("id, activity_type, description, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5)
 
-        // In a stateless app, we'll use sample data instead of fetching from an API
-        setActivities(sampleActivities)
-
-        // Simulate API loading time
-        setTimeout(() => {
-          setIsLoading(false)
-        }, 500)
+        if (error) throw error
+        setActivities(data || [])
       } catch (error) {
         console.error("Error fetching activities:", error)
+      } finally {
         setIsLoading(false)
       }
     }
@@ -112,7 +89,7 @@ export function RecentActivity() {
     <Card>
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Latest actions and updates</CardDescription>
+        <CardDescription>Your latest actions and updates</CardDescription>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (

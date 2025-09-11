@@ -56,17 +56,13 @@
   body {
     @apply bg-minimal-dark text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: var(--font-space-grotesk), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+    font-family: var(--font-space-grotesk), sans-serif;
   }
   h1,
   h2,
   h3,
   h4 {
-    font-family: var(--font-orbitron), system-ui, sans-serif;
+    font-family: var(--font-orbitron), sans-serif;
     @apply tracking-tight;
   }
   p,
@@ -74,40 +70,7 @@
   div,
   a,
   button {
-    font-family: var(--font-space-grotesk), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  }
-
-  /* Ensure inputs look consistent across browsers */
-  input,
-  textarea,
-  select,
-  button {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-  }
-
-  /* Fix for iOS input styling */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  input[type="tel"],
-  input[type="url"],
-  input[type="number"],
-  textarea {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border-radius: var(--radius);
-  }
-
-  /* Fix for iOS button styling */
-  button {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+    font-family: var(--font-space-grotesk), sans-serif;
   }
 }
 
@@ -192,18 +155,9 @@
   .minimal-border {
     box-shadow: inset 0 0 0 1px rgba(79, 155, 255, 0.2);
   }
-
-  /* Cross-browser flexbox gap fallback */
-  .flex-gap {
-    margin: -0.5rem;
-  }
-
-  .flex-gap > * {
-    margin: 0.5rem;
-  }
 }
 
-/* Custom scrollbar - with fallbacks for different browsers */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -215,29 +169,20 @@
 
 ::-webkit-scrollbar-thumb {
   background: #2a2a2a;
-  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #3a3a3a;
 }
 
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #2a2a2a #121212;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-/* Smooth scrolling with browser compatibility */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Focus styles with good contrast */
+/* Focus styles */
 :focus-visible {
-  outline: 2px solid rgba(79, 155, 255, 0.7);
+  outline: 2px solid rgba(79, 155, 255, 0.5);
   outline-offset: 2px;
 }
 
@@ -254,28 +199,4 @@ a {
 
 .card:hover {
   transform: translateY(-2px);
-}
-
-/* iOS tap highlight color */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Fix for iOS 100vh issue */
-.min-h-screen {
-  min-height: 100vh;
-  /* fallback for older browsers */
-  min-height: -webkit-fill-available;
-  min-height: -moz-available;
-  min-height: fill-available;
-}
-
-/* Fix for Safari flexbox gap */
-@supports not (gap: 1rem) {
-  .gap-4 {
-    margin: -0.5rem;
-  }
-  .gap-4 > * {
-    margin: 0.5rem;
-  }
 }

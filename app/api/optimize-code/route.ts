@@ -1,78 +1,102 @@
-import { NextResponse } from "next/server"
-import { groq } from "@ai-sdk/groq"
+import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { ErrorHandler } from "@/lib/error-handler"
+import { groq } from "@ai-sdk/groq"
+import { z } from "zod"
+import { PerformanceMonitor } from "@/lib/performance-monitor"
 
-export async function POST(req: Request) {
+// Input validation schema
+const optimizeCodeRequestSchema = z.object({
+  code: z.string().min(10),
+  language: z.string().min(1),
+  optimizationLevel: z.enum(["basic", "advanced", "expert"]).default("advanced"),
+  preserveComments: z.boolean().optional().default(true),
+})
+
+export async function POST(req: NextRequest) {
+  // Start performance monitoring
+  PerformanceMonitor.startMeasure("optimize-code-api")
+
   try {
-    const { code, language, goals, model } = await req.json()
+    // Parse and validate request body
+    const body = await req.json()
 
-    // Validate inputs
-    if (!code || !language) {
-      return NextResponse.json({ error: "Missing required fields: code and language" }, { status: 400 })
+    const validationResult = optimizeCodeRequestSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Validation error",
+          details: validationResult.error.errors,
+        },
+        { status: 400 },
+      )
     }
 
-    // Create a system message that instructs the model how to optimize code
-    const systemMessage = `You are an expert code optimizer specializing in ${language} development.
-    
-    Your task is to optimize the provided code with a focus on:
-    ${goals?.includes("performance") ? "- Performance: Make the code run faster and more efficiently\n" : ""}
-    ${goals?.includes("readability") ? "- Readability: Improve code clarity and maintainability\n" : ""}
-    ${goals?.includes("modernize") ? "- Modernization: Update to modern language features and best practices\n" : ""}
-    ${goals?.includes("security") ? "- Security: Fix security vulnerabilities and follow security best practices\n" : ""}
-    ${
-      !goals || goals.length === 0
-        ? "- General optimization: Improve the code's overall quality, performance, and readability\n"
-        : ""
-    }
-    
-    Provide your response in the following format:
-    1. First, the optimized code without any explanations or markdown
-    2. Then, after the code, include "# Optimization Explanation" followed by a detailed explanation of:
-       - What changes you made and why
-       - How the changes improve the code
-       - Any trade-offs or considerations
-    
-    The optimized code should be fully functional and maintain the original code's behavior unless there are bugs to fix.`
+    const { code, language, optimizationLevel, preserveComments } = validationResult.data
 
-    // Generate the optimized code using Groq
+    // Create optimization prompt based on parameters
+    let optimizationPrompt = `Optimize the following ${language} code for `
+
+    switch (optimizationLevel) {
+      case "basic":
+        optimizationPrompt += "basic performance improvements while maintaining readability."
+        break
+      case "advanced":
+        optimizationPrompt += "significant performance improvements with a balance of readability and efficiency."
+        break
+      case "expert":
+        optimizationPrompt += "maximum performance, prioritizing efficiency over readability where necessary."
+        break
+    }
+
+    if (preserveComments) {
+      optimizationPrompt += " Preserve all comments in the original code."
+    }
+
+    optimizationPrompt += `\n\nOriginal code:\n\`\`\`${language}\n${code}\n\`\`\`\n\nOptimized code:`
+
+    // Generate optimized code
     const { text } = await generateText({
-      model: groq(model || "llama3-8b-8192"),
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-        {
-          role: "user",
-          content: `Please optimize this ${language} code:\n\n\`\`\`${language}\n${code}\n\`\`\``,
-        },
-      ],
-      temperature: 0.2,
-      maxTokens: 3000,
+      model: groq("llama3-70b-8192"),
+      prompt: optimizationPrompt,
+      temperature: 0.2, // Lower temperature for more deterministic results
+      maxTokens: 4000,
     })
 
-    // Split the response into code and explanation
-    const parts = text.split("# Optimization Explanation")
-    const optimizedCode = parts[0].trim()
-    const explanation = parts.length > 1 ? parts[1].trim() : "No explanation provided."
+    // Extract code from response if needed
+    let optimizedCode = text
 
+    // If the response contains markdown code blocks, extract just the code
+    const codeBlockRegex = new RegExp(`\`\`\`(?:${language})?\n(.*?)\n\`\`\``, "s")
+    const match = text.match(codeBlockRegex)
+
+    if (match && match[1]) {
+      optimizedCode = match[1]
+    }
+
+    // Return the optimized code
     return NextResponse.json({
-      optimizedCode,
-      explanation,
-      model: model || "llama3-8b-8192",
-      timestamp: new Date().toISOString(),
+      result: optimizedCode,
+      originalLength: code.length,
+      optimizedLength: optimizedCode.length,
+      improvementPercentage: (((code.length - optimizedCode.length) / code.length) * 100).toFixed(2),
     })
   } catch (error) {
     console.error("Error optimizing code:", error)
-    ErrorHandler.logError(error, { service: "code-optimization-api" })
 
-    return NextResponse.json(
-      {
-        error: "Failed to optimize code",
-        details: error instanceof Error ? error.message : "An unexpected error occurred",
-      },
-      { status: 500 },
-    )
+    // Handle different types of errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 })
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json({ error: "AI model error", message: error.message }, { status: 500 })
+    }
+
+    // Generic error
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 })
+  } finally {
+    // End performance monitoring
+    const duration = PerformanceMonitor.endMeasure("optimize-code-api")
+    console.log(`Optimize code API took ${duration?.toFixed(2)}ms`)
   }
 }

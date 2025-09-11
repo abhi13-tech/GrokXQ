@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Toaster } from "@/components/ui/toaster"
 import { Suspense } from "react"
-import { DefaultProvider } from "@/contexts/default-context"
+import { AuthProvider } from "@/contexts/auth-context"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Fallback } from "@/components/fallback"
 
@@ -27,7 +27,7 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "GrokXQ Development Suite",
   description: "Comprehensive AI-powered development suite for modern developers",
-  generator: "v0.dev",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -41,7 +41,7 @@ export default function RootLayout({
         className={`min-h-screen bg-minimal-dark text-white antialiased ${spaceGrotesk.variable} ${orbitron.variable}`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <DefaultProvider>
+          <AuthProvider>
             <ErrorBoundary>
               <div className="relative flex min-h-screen flex-col">
                 <div
@@ -56,7 +56,7 @@ export default function RootLayout({
               </div>
               <Toaster />
             </ErrorBoundary>
-          </DefaultProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
