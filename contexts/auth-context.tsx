@@ -65,11 +65,7 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  resetPassword: async (email: string) => {
-    // Simulate a network call in mock mode
-    console.debug(`[Mock] reset-password email sent to ${email}`)
-    await new Promise((r) => setTimeout(r, 500))
-  },
+  resetPassword: async () => {},
   updatePassword: async () => {},
   refreshProfile: async () => {},
   testConnection: async () => true,
@@ -87,10 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn: async () => {},
     signUp: async () => {},
     signOut: async () => {},
-    resetPassword: async (email: string) => {
-      console.debug(`[Mock] reset-password email sent to ${email}`)
-      await new Promise((r) => setTimeout(r, 500))
-    },
+    resetPassword: async () => {},
     updatePassword: async () => {},
     refreshProfile: async () => {},
     testConnection: async () => true,
